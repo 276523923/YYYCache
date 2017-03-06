@@ -17,4 +17,6 @@ YYYCache 网络缓存，根据YYCache修改，可以设定缓存时间。
   s.source       = { :git => "https://github.com/276523923/YYYCache.git", :tag => s.version.to_s }
   s.requires_arc = true
   s.source_files  = "YYYCache/**/*.{m,h}"
+  s.libraries = 'sqlite3'
+  s.frameworks = 'UIKit', 'CoreFoundation', 'QuartzCore' 
 end
