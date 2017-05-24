@@ -234,7 +234,10 @@ static UIApplication *_YYYSharedApplication() {
     if (!stmt) return NO;
     
     int timestamp = (int)time(NULL);
-    expirationTime += timestamp;
+    if (expirationTime > 0)
+    {
+        expirationTime += timestamp;
+    }
     sqlite3_bind_text(stmt, 1, key.UTF8String, -1, NULL);
     sqlite3_bind_text(stmt, 2, fileName.UTF8String, -1, NULL);
     sqlite3_bind_int(stmt, 3, (int)value.length);
@@ -252,19 +255,6 @@ static UIApplication *_YYYSharedApplication() {
     if (result != SQLITE_DONE) {
         if (_errorLogsEnabled) NSLog(@"%s line:%d sqlite insert error (%d): %s", __FUNCTION__, __LINE__, result, sqlite3_errmsg(_db));
         return NO;
-    }
-    NSInteger i = 0;
-    for (; i < _dbExpirationTime.count; i ++) {
-        NSNumber *number = _dbExpirationTime[i];
-        if (number.intValue > expirationTime)
-        {
-            break;
-        }
-    }
-    [_dbExpirationTime insertObject:@(expirationTime) atIndex:i];
-    if (i == 0)
-    {
-        [self trimRecursively];
     }
     return YES;
 }
@@ -791,52 +781,7 @@ static UIApplication *_YYYSharedApplication() {
         }
     }
     [self _fileEmptyTrashInBackground]; // empty the trash if failed at last time
-    int currenttime = (int)time(NULL);
-    [self _dbDeleteItemsWithExpirationTimeEarlierThan:currenttime];
-    NSMutableArray *array = [self _dbGetAllExpirationTime];
-    if (array.count)
-    {
-        _dbExpirationTime = [array mutableCopy];
-        [self trimRecursively];
-    }
-    else
-    {
-        _dbExpirationTime = [NSMutableArray array];
-    }
     return self;
-}
-
-- (void)trimRecursively {
-    NSNumber *expirationTime =  nil;
-    long currenttime = (long)time(NULL);
-    do {
-        expirationTime = [_dbExpirationTime firstObject];
-        [_dbExpirationTime removeObject:expirationTime];
-    } while (currenttime > expirationTime.longValue && expirationTime);
-    if (expirationTime == nil)
-    {
-        return;
-    }
-    long afterDelay = expirationTime.longValue - currenttime;
-    __weak typeof(self) _self = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(afterDelay * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-        __strong typeof(_self) self = _self;
-        if (!self) return;
-        [self trimInBackground];
-        [self trimRecursively];
-    });
-}
-
-- (void)trimInBackground {
-    __weak typeof(self) _self = self;
-    dispatch_async(_queue, ^{
-        __strong typeof(_self) self = _self;
-        if (!self) return;
-        int currenttime = (int)time(NULL);
-        Lock();
-        [self _dbDeleteItemsWithExpirationTimeEarlierThan:currenttime];
-        Unlock();
-    });
 }
 
 - (void)dealloc {

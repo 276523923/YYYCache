@@ -274,5 +274,14 @@ typedef NS_ENUM(NSUInteger, YYYKVStorageType) {
  */
 - (int)getItemsSize;
 
+
+/**
+ 获取所有的超时时间
+
+ @return 超时时间数组
+ */
+- (NSMutableArray *)_dbGetAllExpirationTime;
+- (BOOL)_dbDeleteItemsWithExpirationTimeEarlierThan:(int)time;
+
 @end
 NS_ASSUME_NONNULL_END

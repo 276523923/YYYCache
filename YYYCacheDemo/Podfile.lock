@@ -1,0 +1,16 @@
+PODS:
+  - YYYCache (1.0.0)
+
+DEPENDENCIES:
+  - YYYCache (from `../`)
+
+EXTERNAL SOURCES:
+  YYYCache:
+    :path: ../
+
+SPEC CHECKSUMS:
+  YYYCache: da32da1d12324aa193712bceeef7d73ce434a85e
+
+PODFILE CHECKSUM: 8c6dde5d3a0d156aa0d875de3888141dee910bb0
+
+COCOAPODS: 1.2.0

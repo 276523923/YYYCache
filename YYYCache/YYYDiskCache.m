@@ -76,6 +76,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
 
 @implementation YYYDiskCache{
     YYYKVStorage *_kv;
+    NSMutableArray *_dbExpirationTime;
     dispatch_semaphore_t _lock;
     dispatch_queue_t _queue;
 }
@@ -87,6 +88,38 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
         if (!self) return;
         [self _trimInBackground];
         [self _trimRecursively];
+    });
+}
+
+- (void)trimRecursivelyExpirationTime{
+    NSNumber *expirationTime =  nil;
+    long currenttime = (long)time(NULL);
+    do {
+        expirationTime = [_dbExpirationTime firstObject];
+        [_dbExpirationTime removeObject:expirationTime];
+    } while (currenttime > expirationTime.longValue && expirationTime);
+    if (expirationTime == nil)
+    {
+        return;
+    }
+    long afterDelay = expirationTime.longValue - currenttime;
+    __weak typeof(self) _self = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(afterDelay * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        __strong typeof(_self) self = _self;
+        if (!self) return;
+        [self trimInBackgroundExpirationTime];
+        [self trimRecursivelyExpirationTime];
+    });
+}
+- (void)trimInBackgroundExpirationTime {
+    __weak typeof(self) _self = self;
+    dispatch_async(_queue, ^{
+        __strong typeof(_self) self = _self;
+        if (!self) return;
+        int currenttime = (int)time(NULL);
+        Lock();
+        [self->_kv _dbDeleteItemsWithExpirationTimeEarlierThan:currenttime];
+        Unlock();
     });
 }
 
@@ -199,6 +232,18 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     _freeDiskSpaceLimit = 0;
     _autoTrimInterval = 60;
     
+    Lock();
+    NSMutableArray *array = [_kv _dbGetAllExpirationTime];
+    Unlock();
+    if (array.count)
+    {
+        _dbExpirationTime = [array mutableCopy];
+        [self trimRecursivelyExpirationTime];
+    }
+    else
+    {
+        _dbExpirationTime = [NSMutableArray array];
+    }
     [self _trimRecursively];
     _YYYDiskCacheSetGlobal(self);
     
@@ -296,6 +341,23 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     
     Lock();
     [_kv saveItemWithKey:key value:value filename:filename expirationTime:time extendedData:extendedData];
+    if (time>0)
+    {
+        NSInteger i = 0;
+        for (; i < _dbExpirationTime.count; i ++) {
+            NSNumber *number = _dbExpirationTime[i];
+            if (number.intValue > time)
+            {
+                break;
+            }
+        }
+        [_dbExpirationTime insertObject:@(time) atIndex:i];
+        if (i == 0)
+        {
+            [self trimRecursivelyExpirationTime];
+        }
+
+    }
     Unlock();
 
 }
