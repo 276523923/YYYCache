@@ -227,13 +227,13 @@ static UIApplication *_YYYSharedApplication() {
     return [self _dbSaveWithKey:key value:value fileName:fileName extendedData:extendedData expirationTime:0];
 }
 
-- (BOOL)_dbSaveWithKey:(NSString *)key value:(NSData *)value fileName:(NSString *)fileName extendedData:(NSData *)extendedData expirationTime:(int)expirationTime
+- (BOOL)_dbSaveWithKey:(NSString *)key value:(NSData *)value fileName:(NSString *)fileName extendedData:(NSData *)extendedData expirationTime:(time_t)expirationTime
 {
     NSString *sql = @"insert or replace into yyymanifest (key, filename, size, inline_data, modification_time, last_access_time, extended_data, expiration_time) values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);";
     sqlite3_stmt *stmt = [self _dbPrepareStmt:sql];
     if (!stmt) return NO;
     
-    int timestamp = (int)time(NULL);
+    time_t timestamp = time(NULL);
     if (expirationTime > 0)
     {
         expirationTime += timestamp;
@@ -246,10 +246,10 @@ static UIApplication *_YYYSharedApplication() {
     } else {
         sqlite3_bind_blob(stmt, 4, NULL, 0, 0);
     }
-    sqlite3_bind_int(stmt, 5, timestamp);
-    sqlite3_bind_int(stmt, 6, timestamp);
+    sqlite3_bind_int64(stmt, 5, timestamp);
+    sqlite3_bind_int64(stmt, 6, timestamp);
     sqlite3_bind_blob(stmt, 7, extendedData.bytes, (int)extendedData.length, 0);
-    sqlite3_bind_int(stmt, 8, expirationTime);
+    sqlite3_bind_int64(stmt, 8, expirationTime);
 
     int result = sqlite3_step(stmt);
     if (result != SQLITE_DONE) {
@@ -342,11 +342,11 @@ static UIApplication *_YYYSharedApplication() {
     return YES;
 }
 
-- (BOOL)_dbDeleteItemsWithTimeEarlierThan:(int)time {
+- (BOOL)_dbDeleteItemsWithTimeEarlierThan:(time_t)time {
     NSString *sql = @"delete from yyymanifest where last_access_time < ?1;";
     sqlite3_stmt *stmt = [self _dbPrepareStmt:sql];
     if (!stmt) return NO;
-    sqlite3_bind_int(stmt, 1, time);
+    sqlite3_bind_int64(stmt, 1, time);
     int result = sqlite3_step(stmt);
     if (result != SQLITE_DONE) {
         if (_errorLogsEnabled)  NSLog(@"%s line:%d sqlite delete error (%d): %s", __FUNCTION__, __LINE__, result, sqlite3_errmsg(_db));
@@ -355,11 +355,11 @@ static UIApplication *_YYYSharedApplication() {
     return YES;
 }
 
-- (BOOL)_dbDeleteItemsWithExpirationTimeEarlierThan:(int)time {
+- (BOOL)_dbDeleteItemsWithExpirationTimeEarlierThan:(time_t)time {
     NSString *sql = @"delete from yyymanifest where expiration_time < ?1 and expiration_time > ?2;";
     sqlite3_stmt *stmt = [self _dbPrepareStmt:sql];
     if (!stmt) return NO;
-    sqlite3_bind_int(stmt, 1, time);
+    sqlite3_bind_int64(stmt, 1, time);
     sqlite3_bind_int(stmt, 2, 0);
     int result = sqlite3_step(stmt);
     if (result != SQLITE_DONE) {
@@ -488,7 +488,7 @@ static UIApplication *_YYYSharedApplication() {
 
 - (NSMutableArray *)_dbGetAllExpirationTime
 {
-    NSString *sql = @"select expiration_time from yyymanifest where expiration_time > ?1;";
+    NSString *sql = @"select expiration_time from yyymanifest where expiration_time > ?1 group by expiration_time order by expiration_time;";
     sqlite3_stmt *stmt = [self _dbPrepareStmt:sql];
     sqlite3_bind_int(stmt, 1, 0);
 
@@ -497,8 +497,8 @@ static UIApplication *_YYYSharedApplication() {
     do {
         int result = sqlite3_step(stmt);
         if (result == SQLITE_ROW) {
-            int expiratironTime = sqlite3_column_int(stmt, 0);
-            [expiratironTimes addObject:[NSNumber numberWithInt:expiratironTime]];
+            long expiratironTime = sqlite3_column_int(stmt, 0);
+            [expiratironTimes addObject:[NSNumber numberWithLong:expiratironTime]];
         } else if (result == SQLITE_DONE) {
             break;
         } else {
@@ -568,11 +568,11 @@ static UIApplication *_YYYSharedApplication() {
     return filenames;
 }
 
-- (NSMutableArray *)_dbGetFilenamesWithTimeEarlierThan:(int)time {
+- (NSMutableArray *)_dbGetFilenamesWithTimeEarlierThan:(time_t)time {
     NSString *sql = @"select filename from yyymanifest where last_access_time < ?1 and filename is not null;";
     sqlite3_stmt *stmt = [self _dbPrepareStmt:sql];
     if (!stmt) return nil;
-    sqlite3_bind_int(stmt, 1, time);
+    sqlite3_bind_int64(stmt, 1, time);
     
     NSMutableArray *filenames = [NSMutableArray new];
     do {
@@ -804,7 +804,7 @@ static UIApplication *_YYYSharedApplication() {
     return [self saveItemWithKey:key value:value filename:filename expirationTime:0 extendedData:extendedData];
 }
 
-- (BOOL)saveItemWithKey:(NSString *)key value:(NSData *)value filename:(NSString *)filename expirationTime:(int)expirationTime extendedData:(NSData *)extendedData
+- (BOOL)saveItemWithKey:(NSString *)key value:(NSData *)value filename:(NSString *)filename expirationTime:(time_t)expirationTime extendedData:(NSData *)extendedData
 {
     if (key.length == 0 || value.length == 0) return NO;
     if (_type == YYYKVStorageTypeFile && filename.length == 0) {
@@ -893,7 +893,7 @@ static UIApplication *_YYYSharedApplication() {
     return NO;
 }
 
-- (BOOL)removeItemsEarlierThanTime:(int)time {
+- (BOOL)removeItemsEarlierThanTime:(time_t)time {
     if (time <= 0) return YES;
     if (time == INT_MAX) return [self removeAllItems];
     
@@ -1026,7 +1026,7 @@ static UIApplication *_YYYSharedApplication() {
     {
         if (item.expirationTime > 0)
         {
-            int timestamp = (int)time(NULL);
+            time_t timestamp = time(NULL);
             if (timestamp > item.expirationTime)
             {
                 [self _dbDeleteItemWithKey:key];

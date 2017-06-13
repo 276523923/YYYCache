@@ -110,7 +110,7 @@ typedef NS_ENUM(NSUInteger, YYYKVStorageType) {
 - (BOOL)saveItemWithKey:(NSString *)key
                   value:(NSData *)value
                filename:(nullable NSString *)filename
-         expirationTime:(int)expirationTime
+         expirationTime:(time_t)expirationTime
            extendedData:(nullable NSData *)extendedData;
 
 
@@ -150,7 +150,7 @@ typedef NS_ENUM(NSUInteger, YYYKVStorageType) {
  @param time  The specified unix timestamp.
  @return Whether succeed.
  */
-- (BOOL)removeItemsEarlierThanTime:(int)time;
+- (BOOL)removeItemsEarlierThanTime:(time_t)time;
 
 /**
  Remove items to make the total size not larger than a specified size.
@@ -281,7 +281,7 @@ typedef NS_ENUM(NSUInteger, YYYKVStorageType) {
  @return 超时时间数组
  */
 - (NSMutableArray *)_dbGetAllExpirationTime;
-- (BOOL)_dbDeleteItemsWithExpirationTimeEarlierThan:(int)time;
+- (BOOL)_dbDeleteItemsWithExpirationTimeEarlierThan:(time_t)time;
 
 @end
 NS_ASSUME_NONNULL_END

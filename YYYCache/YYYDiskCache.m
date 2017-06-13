@@ -93,16 +93,26 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
 
 - (void)trimRecursivelyExpirationTime{
     NSNumber *expirationTime =  nil;
-    long currenttime = (long)time(NULL);
+    time_t currenttime = time(NULL);
+    NSInteger count = 0;
     do {
         expirationTime = [_dbExpirationTime firstObject];
-        [_dbExpirationTime removeObject:expirationTime];
-    } while (currenttime > expirationTime.longValue && expirationTime);
+        if (expirationTime)
+        {
+            [_dbExpirationTime removeObject:expirationTime];
+            count ++;
+        }
+    } while (currenttime >= expirationTime.longValue && expirationTime);
     if (expirationTime == nil)
     {
         return;
     }
+    
     long afterDelay = expirationTime.longValue - currenttime;
+    if (count > 1 && afterDelay > 5)
+    {
+        [self trimInBackgroundExpirationTime];
+    }
     __weak typeof(self) _self = self;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(afterDelay * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
         __strong typeof(_self) self = _self;
@@ -116,7 +126,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     dispatch_async(_queue, ^{
         __strong typeof(_self) self = _self;
         if (!self) return;
-        int currenttime = (int)time(NULL);
+        time_t currenttime = time(NULL);
         Lock();
         [self->_kv _dbDeleteItemsWithExpirationTimeEarlierThan:currenttime];
         Unlock();
