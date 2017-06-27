@@ -92,6 +92,9 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
 }
 
 - (void)trimRecursivelyExpirationTime{
+    if (!_dbExpirationTime || _dbExpirationTime.count == 0) {
+        return;
+    }
     NSNumber *expirationTime =  nil;
     time_t currenttime = time(NULL);
     NSInteger count = 0;
@@ -102,7 +105,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
             [_dbExpirationTime removeObject:expirationTime];
             count ++;
         }
-    } while (currenttime >= expirationTime.longValue && expirationTime);
+    } while (currenttime >= expirationTime.longValue && expirationTime && _dbExpirationTime.count);
     if (expirationTime == nil)
     {
         return;
