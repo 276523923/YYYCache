@@ -324,7 +324,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     });
 }
 
-- (void)setObject:(nullable id<NSCoding>)object forKey:(NSString *)key  withExpirationTime:(NSTimeInterval)time
+- (void)setObject:(nullable id<NSCoding>)object forKey:(NSString *)key  withExpirationTime:(NSTimeInterval)extime
 {
     if (!key) return;
     if (!object) {
@@ -353,9 +353,12 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     }
     
     Lock();
-    [_kv saveItemWithKey:key value:value filename:filename expirationTime:time extendedData:extendedData];
+    [_kv saveItemWithKey:key value:value filename:filename expirationTime:extime extendedData:extendedData];
     if (time>0)
     {
+        time_t currenttime = time(NULL);
+        extime += currenttime;
+        
         NSInteger i = 0;
         for (; i < _dbExpirationTime.count; i ++) {
             NSNumber *number = _dbExpirationTime[i];
@@ -364,7 +367,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
                 break;
             }
         }
-        [_dbExpirationTime insertObject:@(time) atIndex:i];
+        [_dbExpirationTime insertObject:@(extime) atIndex:i];
         if (i == 0)
         {
             [self trimRecursivelyExpirationTime];

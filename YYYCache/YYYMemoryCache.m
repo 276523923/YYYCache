@@ -389,14 +389,16 @@ static inline dispatch_queue_t YYYMemoryCacheGetReleaseQueue() {
 
 - (id)objectForKey:(id)key {
     if (!key) return nil;
+    BOOL isExpiration = NO;
     pthread_mutex_lock(&_lock);
     _YYYLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *)(key));
     if (node) {
         if (node->_expirationTime > 0)
         {
             NSTimeInterval now = CACurrentMediaTime();
-            if (node->_expirationTime > now)
+            if (node->_expirationTime < now)
             {
+                isExpiration = YES;
                 node = nil;
             }
         }
@@ -407,6 +409,10 @@ static inline dispatch_queue_t YYYMemoryCacheGetReleaseQueue() {
         }
     }
     pthread_mutex_unlock(&_lock);
+    if (isExpiration)
+    {
+        [self removeObjectForKey:key];
+    }
     return node ? node->_value : nil;
 }
 
@@ -438,18 +444,19 @@ static inline dispatch_queue_t YYYMemoryCacheGetReleaseQueue() {
         _lru->_totalCost += cost;
         node->_cost = cost;
         node->_time = now;
-        node->_expirationTime = now + time;
+        node->_expirationTime = time>0? now + time:0;
         node->_value = object;
         [_lru bringNodeToHead:node];
     } else {
         node = [_YYYLinkedMapNode new];
         node->_cost = cost;
         node->_time = now;
-        node->_expirationTime = now + time;
+        node->_expirationTime = time>0? now + time:0;
         node->_key = key;
         node->_value = object;
         [_lru insertNodeAtHead:node];
     }
+    
     if (_lru->_totalCost > _costLimit) {
         dispatch_async(_queue, ^{
             [self trimToCost:_costLimit];
