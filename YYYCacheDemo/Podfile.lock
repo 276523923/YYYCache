@@ -1,5 +1,5 @@
 PODS:
-  - YYYCache (1.0.0)
+  - YYYCache (1.0.2)
 
 DEPENDENCIES:
   - YYYCache (from `../`)
@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  YYYCache: da32da1d12324aa193712bceeef7d73ce434a85e
+  YYYCache: 2dc3e1f3be90f2b2567e06242accf3ed51a045e8
 
 PODFILE CHECKSUM: 8c6dde5d3a0d156aa0d875de3888141dee910bb0
 

@@ -362,7 +362,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
         NSInteger i = 0;
         for (; i < _dbExpirationTime.count; i ++) {
             NSNumber *number = _dbExpirationTime[i];
-            if (number.intValue > time)
+            if (number.intValue > extime)
             {
                 break;
             }
