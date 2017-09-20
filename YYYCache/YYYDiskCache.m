@@ -99,13 +99,18 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     time_t currenttime = time(NULL);
     NSInteger count = 0;
     do {
-        expirationTime = [_dbExpirationTime firstObject];
+        if (_dbExpirationTime.count == 0)
+        {
+            break;
+        }
+        expirationTime = _dbExpirationTime[0];
         if (expirationTime)
         {
             [_dbExpirationTime removeObject:expirationTime];
             count ++;
         }
-    } while (currenttime >= expirationTime.longValue && expirationTime && _dbExpirationTime.count);
+    } while (currenttime >= expirationTime.longValue && expirationTime && _dbExpirationTime.count > 0);
+    
     if (expirationTime == nil)
     {
         return;
