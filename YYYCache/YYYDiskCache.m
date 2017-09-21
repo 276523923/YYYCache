@@ -97,24 +97,24 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
         return;
     }
     
-    Lock();
     NSNumber *expirationTime =  nil;
     time_t currenttime = time(NULL);
     NSInteger count = 0;
-    for (NSInteger i = 0; i < _dbExpirationTime.count; i ++)
+    NSArray *array = _dbExpirationTime.array;
+    for (NSInteger i = 0; i < array.count; i ++)
     {
-        expirationTime = [_dbExpirationTime objectAtIndex:i];
+        expirationTime = [array objectAtIndex:i];
         if (currenttime < expirationTime.longLongValue)
         {
             break;
         }
+        else
+        {
+            [_dbExpirationTime removeObject:expirationTime];
+        }
         count ++;
     }
-    if (count > 0)
-    {
-        [_dbExpirationTime removeObjectsInRange:NSMakeRange(0, count)];
-    }
-    Unlock();
+    
     if (expirationTime == nil)
     {
         return;
