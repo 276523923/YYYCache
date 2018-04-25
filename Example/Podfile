@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'YYYCache_Example' do
+  pod 'YYYCache', :path => '../'
+
+  target 'YYYCache_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
