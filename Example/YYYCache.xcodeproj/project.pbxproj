@@ -24,6 +24,7 @@
 		6003F5BC195388D20070C39A /* Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6003F5BB195388D20070C39A /* Tests.m */; };
 		71719F9F1E33DC2100824A3D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 71719F9D1E33DC2100824A3D /* LaunchScreen.storyboard */; };
 		873B8AEB1B1F5CCA007FD442 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 873B8AEA1B1F5CCA007FD442 /* Main.storyboard */; };
+		A7FBBD0320EA1B82009D8674 /* upload.sh in Resources */ = {isa = PBXBuildFile; fileRef = A7FBBD0220EA1B82009D8674 /* upload.sh */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +65,7 @@
 		6C92749467458A09092F3F3F /* Pods_YYYCache_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_YYYCache_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		71719F9E1E33DC2100824A3D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		873B8AEA1B1F5CCA007FD442 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		A7FBBD0220EA1B82009D8674 /* upload.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = upload.sh; path = ../upload.sh; sourceTree = "<group>"; };
 		C946B99E6D057D289C4E029C /* Pods-YYYCache_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YYYCache_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-YYYCache_Example/Pods-YYYCache_Example.release.xcconfig"; sourceTree = "<group>"; };
 		CD1F4336F7D7925667A0400F /* Pods-YYYCache_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YYYCache_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-YYYCache_Tests/Pods-YYYCache_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		F83E1A210F250FA966E12822 /* Pods_YYYCache_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_YYYCache_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -189,6 +191,7 @@
 		60FF7A9C1954A5C5007DD14C /* Podspec Metadata */ = {
 			isa = PBXGroup;
 			children = (
+				A7FBBD0220EA1B82009D8674 /* upload.sh */,
 				3E42FBAA35D6AA7FDAD2E7D1 /* YYYCache.podspec */,
 				513237FA0033C76CF4C771FB /* README.md */,
 				352DD9FA17412A75FBC353FF /* LICENSE */,
@@ -280,6 +283,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				873B8AEB1B1F5CCA007FD442 /* Main.storyboard in Resources */,
+				A7FBBD0320EA1B82009D8674 /* upload.sh in Resources */,
 				71719F9F1E33DC2100824A3D /* LaunchScreen.storyboard in Resources */,
 				6003F5A9195388D20070C39A /* Images.xcassets in Resources */,
 				6003F598195388D20070C39A /* InfoPlist.strings in Resources */,
