@@ -105,7 +105,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     NSInteger count = 0;
     NSArray *array = _dbExpirationTime.array;
     for (NSInteger i = 0; i < array.count; i++) {
-        expirationTime = [array objectAtIndex:i];
+        expirationTime = array[i];
         if (currenttime < expirationTime.longLongValue) {
             break;
         } else {
@@ -377,10 +377,9 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
 
     Lock();
     [_kv saveItemWithKey:key value:value filename:filename expirationTime:extime extendedData:extendedData];
-    if (time > 0) {
+    if (extime > 0) {
         time_t currenttime = time(NULL);
         extime += currenttime;
-
         NSInteger i = 0;
         for (; i < _dbExpirationTime.count; i++) {
             NSNumber *number = _dbExpirationTime[i];
@@ -392,7 +391,6 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
         if (i == 0) {
             [self trimRecursivelyExpirationTime];
         }
-
     }
     Unlock();
 

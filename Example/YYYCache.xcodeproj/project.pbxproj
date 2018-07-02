@@ -38,7 +38,7 @@
 
 /* Begin PBXFileReference section */
 		352DD9FA17412A75FBC353FF /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
-		3E42FBAA35D6AA7FDAD2E7D1 /* YYYCache.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = YYYCache.podspec; path = ../YYYCache.podspec; sourceTree = "<group>"; };
+		3E42FBAA35D6AA7FDAD2E7D1 /* YYYCache.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = YYYCache.podspec; path = ../YYYCache.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		513237FA0033C76CF4C771FB /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		528C2442198E51EC9E718A93 /* Pods-YYYCache_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YYYCache_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-YYYCache_Example/Pods-YYYCache_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		5A15C043020E7C425CD653CA /* Pods-YYYCache_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YYYCache_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-YYYCache_Tests/Pods-YYYCache_Tests.debug.xcconfig"; sourceTree = "<group>"; };
