@@ -48,6 +48,15 @@
     return [[self alloc] initWithPath:path];
 }
 
++ (instancetype)sharedCache {
+    static YYYCache *yyy_shared_cache = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        yyy_shared_cache = [self cacheWithName:@"YYYSharedCache"];
+    });
+    return yyy_shared_cache;
+}
+
 - (BOOL)containsObjectForKey:(NSString *)key {
     return [_memoryCache containsObjectForKey:key] || [_diskCache containsObjectForKey:key];
 }

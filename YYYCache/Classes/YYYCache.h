@@ -71,6 +71,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init UNAVAILABLE_ATTRIBUTE;
 + (instancetype)new UNAVAILABLE_ATTRIBUTE;
 
++ (instancetype)sharedCache;
+
 #pragma mark - Access Methods
 ///=============================================================================
 /// @name Access Methods
@@ -102,7 +104,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param key A string identifying the value. If nil, just return nil.
  @return The value associated with key, or nil if no value is associated with key.
  */
-- (nullable id <NSCoding>)objectForKey:(NSString *)key;
+- (nullable id)objectForKey:(NSString *)key;
 
 /**
  Returns the value associated with a given key.
@@ -112,7 +114,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param key A string identifying the value. If nil, just return nil.
  @param block A block which will be invoked in background queue when finished.
  */
-- (void)objectForKey:(NSString *)key withBlock:(nullable void (^)(NSString *key, id <NSCoding> object))block;
+- (void)objectForKey:(NSString *)key withBlock:(nullable void (^)(NSString *key, id object))block;
 
 - (void)setObject:(nullable id <NSCoding>)object forKey:(NSString *)key withExpirationTime:(NSTimeInterval)time;
 - (void)setObject:(nullable id <NSCoding>)object forKey:(NSString *)key withExpirationTime:(NSTimeInterval)time block:(nullable void (^)(void))block;
