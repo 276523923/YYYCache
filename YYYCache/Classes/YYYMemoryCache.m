@@ -401,6 +401,7 @@ static inline dispatch_queue_t YYYMemoryCacheGetReleaseQueue() {
     if (!key)
         return nil;
     BOOL isExpiration = NO;
+    id value = nil;
     pthread_mutex_lock(&_lock);
     _YYYLinkedMapNode *node = CFDictionaryGetValue(_lru->_dic, (__bridge const void *) (key));
     if (node) {
@@ -416,11 +417,13 @@ static inline dispatch_queue_t YYYMemoryCacheGetReleaseQueue() {
             [_lru bringNodeToHead:node];
         }
     }
+    value = node ? node->_value : nil;
     pthread_mutex_unlock(&_lock);
     if (isExpiration) {
+        
         [self removeObjectForKey:key];
     }
-    return node ? node->_value : nil;
+    return value;
 }
 
 - (void)setObject:(id)object forKey:(id)key {

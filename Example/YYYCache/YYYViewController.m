@@ -18,7 +18,24 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    YYYCache *cache = [YYYCache sharedCache];
+    
+//    [cache setObject:@"1" forKey:@"1" withExpirationTime:10];
+//    [cache setObject:@"1" forKey:@"2" withExpirationTime:10];
+//    [cache setObject:@"1" forKey:@"3" withExpirationTime:1000];
 
+    NSString *cacheFolder = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *path = [cacheFolder stringByAppendingPathComponent:@"YYYSharedCache"];
+    
+    YYYKVStorage *storage = [[YYYKVStorage alloc] initWithPath:path type:YYYKVStorageTypeMixed];
+    
+    
+    
+    NSArray *array = [storage getItemForKeys:@[@"1",@"2",@"3",@"4"]];
+    NSLog(@"%@",array);
+
+    
 	// Do any additional setup after loading the view, typically from a nib.
 }
 

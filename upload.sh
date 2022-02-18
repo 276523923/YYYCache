@@ -16,5 +16,5 @@ git tag ${VersionNumber}
 git push origin master --tags
 echo -e "================================================\n"
 echo -e "pod repo push "
-pod repo push YYYPrivatePods YYYCache.podspec --allow-warnings --use-libraries
+pod trunk push YYYCache.podspec --allow-warnings
 echo -e "================================================\n"

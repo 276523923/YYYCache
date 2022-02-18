@@ -172,7 +172,13 @@ static UIApplication *_YYYSharedApplication() {
 }
 
 - (BOOL)_dbInitialize {
-    NSString *sql = @"pragma journal_mode = wal; pragma synchronous = normal; create table if not exists yyymanifest (key text, filename text, size integer, inline_data blob, modification_time integer, last_access_time integer, extended_data blob,expiration_time interger, primary key(key)); create index if not exists last_access_time_idx on yyymanifest(last_access_time);";
+    
+#if SQLITE_VERSION_NUMBER >= 3008002
+    NSString *sql = @"pragma journal_mode = wal; pragma synchronous = normal; create table if not exists yyymanifest (key text, filename text, size integer, inline_data blob, modification_time integer, last_access_time integer, extended_data blob, expiration_time interger, primary key(key)) without rowid; create index if not exists last_access_time_idx on yyymanifest(last_access_time);";
+#else
+    NSString *sql = @"pragma journal_mode = wal; pragma synchronous = normal; create table if not exists yyymanifest (key text, filename text, size integer, inline_data blob, modification_time integer, last_access_time integer, extended_data blob, expiration_time interger, primary key(key)); create index if not exists last_access_time_idx on yyymanifest(last_access_time);";
+#endif
+    
     return [self _dbExecute:sql];
 }
 
@@ -398,6 +404,7 @@ static UIApplication *_YYYSharedApplication() {
     return YES;
 }
 
+//数据库查找
 - (YYYKVStorageItem *)_dbGetItemFromStmt:(sqlite3_stmt *)stmt excludeInlineData:(BOOL)excludeInlineData {
     int i = 0;
     char *key = (char *) sqlite3_column_text(stmt, i++);
@@ -433,8 +440,7 @@ static UIApplication *_YYYSharedApplication() {
     if (!stmt)
         return nil;
     sqlite3_bind_text(stmt, 1, key.UTF8String, -1, NULL);
-
-    YYYKVStorageItem *item = nil;
+        YYYKVStorageItem *item = nil;
     int result = sqlite3_step(stmt);
     if (result == SQLITE_ROW) {
         item = [self _dbGetItemFromStmt:stmt excludeInlineData:excludeInlineData];
@@ -442,6 +448,13 @@ static UIApplication *_YYYSharedApplication() {
         if (result != SQLITE_DONE) {
             if (_errorLogsEnabled)
                 NSLog(@"%s line:%d sqlite query error (%d): %s", __FUNCTION__, __LINE__, result, sqlite3_errmsg(_db));
+        }
+    }
+    if (item && item.expirationTime > 0) {
+        time_t timestamp = time(NULL);
+        if (timestamp > item.expirationTime) {
+            item = nil;
+            [self _dbDeleteItemWithKey:key];
         }
     }
     return item;
@@ -452,9 +465,9 @@ static UIApplication *_YYYSharedApplication() {
         return nil;
     NSString *sql;
     if (excludeInlineData) {
-        sql = [NSString stringWithFormat:@"select key, filename, size, modification_time, last_access_time, extended_data from yyymanifest where key in (%@);", [self _dbJoinedKeys:keys]];
+        sql = [NSString stringWithFormat:@"select key, filename, size, modification_time, last_access_time, extended_data,expiration_time from yyymanifest where key in (%@);", [self _dbJoinedKeys:keys]];
     } else {
-        sql = [NSString stringWithFormat:@"select key, filename, size, inline_data, modification_time, last_access_time, extended_data from yyymanifest where key in (%@)", [self _dbJoinedKeys:keys]];
+        sql = [NSString stringWithFormat:@"select key, filename, size, inline_data, modification_time, last_access_time, extended_data,expiration_time from yyymanifest where key in (%@)", [self _dbJoinedKeys:keys]];
     }
 
     sqlite3_stmt *stmt = NULL;
@@ -467,12 +480,19 @@ static UIApplication *_YYYSharedApplication() {
 
     [self _dbBindJoinedKeys:keys stmt:stmt fromIndex:1];
     NSMutableArray *items = [NSMutableArray new];
+    NSMutableArray *expirationItemKes = [NSMutableArray array];
+    time_t timestamp = time(NULL);
     do {
         result = sqlite3_step(stmt);
         if (result == SQLITE_ROW) {
             YYYKVStorageItem *item = [self _dbGetItemFromStmt:stmt excludeInlineData:excludeInlineData];
-            if (item)
-                [items addObject:item];
+            if (item) {
+                if (item.expirationTime > 0 && timestamp > item.expirationTime) {
+                    [expirationItemKes addObject:item.key];
+                } else {
+                    [items addObject:item];
+                }
+            }
         } else if (result == SQLITE_DONE) {
             break;
         } else {
@@ -483,6 +503,9 @@ static UIApplication *_YYYSharedApplication() {
         }
     } while (1);
     sqlite3_finalize(stmt);
+    if (expirationItemKes.count) {
+        [self _dbDeleteItemWithKeys:expirationItemKes];
+    }
     return items;
 }
 
@@ -497,6 +520,7 @@ static UIApplication *_YYYSharedApplication() {
     if (result == SQLITE_ROW) {
         const void *inline_data = sqlite3_column_blob(stmt, 0);
         int inline_data_bytes = sqlite3_column_bytes(stmt, 0);
+        sqlite3_reset(stmt);
         if (!inline_data || inline_data_bytes <= 0)
             return nil;
         return [NSData dataWithBytes:inline_data length:inline_data_bytes];
@@ -542,7 +566,7 @@ static UIApplication *_YYYSharedApplication() {
         int result = sqlite3_step(stmt);
         if (result == SQLITE_ROW) {
             long expiratironTime = sqlite3_column_int(stmt, 0);
-            [expiratironTimes addObject:[NSNumber numberWithLong:expiratironTime]];
+            [expiratironTimes addObject:@(expiratironTime)];
         } else if (result == SQLITE_DONE) {
             break;
         } else {
@@ -1122,13 +1146,6 @@ static UIApplication *_YYYSharedApplication() {
         return nil;
     YYYKVStorageItem *item = [self _dbGetItemWithKey:key excludeInlineData:NO];
     if (item) {
-        if (item.expirationTime > 0) {
-            time_t timestamp = time(NULL);
-            if (timestamp > item.expirationTime) {
-                [self _dbDeleteItemWithKey:key];
-                item = nil;
-            }
-        }
         if (item.filename) {
             item.value = [self _fileReadWithName:item.filename];
             if (!item.value) {

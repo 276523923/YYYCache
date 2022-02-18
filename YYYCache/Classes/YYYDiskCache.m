@@ -335,7 +335,7 @@ static void _YYYDiskCacheSetGlobal(YYYDiskCache *cache) {
     return object;
 }
 
-- (void)objectForKey:(NSString *)key withBlock:(void (^)(NSString *key, id <NSCoding> object))block {
+- (void)objectForKey:(NSString *)key withBlock:(void (^)(NSString *key, id object))block {
     if (!block)
         return;
     __weak typeof(self) _self = self;
